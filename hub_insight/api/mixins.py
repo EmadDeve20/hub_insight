@@ -1,13 +1,7 @@
 from typing import Sequence, Type, TYPE_CHECKING
 
-from importlib import import_module
-
-from django.conf import settings
-
-from django.contrib import auth
-
 from rest_framework.permissions import IsAuthenticated, BasePermission
-from rest_framework.authentication import BaseAuthentication
+from rest_framework.authentication import BaseAuthentication, BasicAuthentication
 
 from rest_framework_simplejwt.authentication import JWTAuthentication 
 
@@ -36,5 +30,6 @@ else:
 class ApiAuthMixin:
     authentication_classes: Sequence[Type[BaseAuthentication]] = [
             JWTAuthentication,
+            BasicAuthentication,
     ]
     permission_classes: PermissionClassesType = (IsAuthenticated, )
