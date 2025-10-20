@@ -1,5 +1,5 @@
 from django.urls import path, include
 
 urlpatterns = [
-    # path('blog/', include(('hub_insight.blog.urls', 'blog')))
+    path('users/', include(('hub_insight.users.urls', 'users')))
 ]
