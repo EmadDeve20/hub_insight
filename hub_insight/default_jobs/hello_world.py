@@ -1,4 +1,4 @@
-from .typing import JobDetail
+from hub_insight.utils.typing import JobDetail
 
 
 def job_detail() -> JobDetail:
