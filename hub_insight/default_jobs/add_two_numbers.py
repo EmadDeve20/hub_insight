@@ -4,7 +4,8 @@ from hub_insight.utils.typing import JobDetail
 def job_detail() -> JobDetail:
     detail:JobDetail = {
         "help": "This job is for add two numbers. number_one + number_two",
-        "name": "Add Two Numbers"
+        "name": "Add Two Numbers",
+        "version": "v1",
     }
 
     return detail

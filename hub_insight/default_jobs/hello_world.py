@@ -4,7 +4,8 @@ from hub_insight.utils.typing import JobDetail
 def job_detail() -> JobDetail:
     detail:JobDetail = {
         "help": "Hello World Job",
-        "name": "Hello World"
+        "name": "Hello World",
+        "version":"v1"
     }
 
     return detail
