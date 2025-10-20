@@ -3,7 +3,7 @@ from typing import TypedDict, Optional
 class JobDetail(TypedDict):
     help: str
     name: str
-    version: str = "v1"
+    version: str
 
 
 class JobVariable(TypedDict):
