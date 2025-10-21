@@ -1,10 +1,13 @@
 import os
 import importlib
+import inspect
 
 from pathlib import Path
 
+from django.db import transaction
+
 from config.django.base import BASE_DIR
-from .models import Job
+from .models import Job, Variable, Response, MAP_PYTHON_VAR
 
 from hub_insight.utils.typing import JobDetail
 
@@ -46,7 +49,45 @@ class JobsCommand:
 
     saved_jobs_name = []
 
-    # TODO: Save varibales and return_annotation
+    def __add_variables_response(self, jobs:list[Job], func_jobs):
+        """
+        add variables and response for each Job object model
+
+        Args:
+            jobs (list[Job]): list of jobs
+            func_jobs (_type_): job function for each job
+        """
+
+        vars = []
+        responses = []
+
+        for job, func_job in zip(jobs, func_jobs):
+            func_sign = inspect.signature(func_job)
+            for s in func_sign.parameters.items():
+                vars.append(
+                    Variable(
+                        job=job,
+                        name=s[0],
+                        var_type=MAP_PYTHON_VAR[s[1].annotation],
+                        default=s[1].default if s[1].default != inspect._empty else None 
+                    )
+                )
+
+            responses.append(
+                Response(
+                    job=job,
+                    response_type=MAP_PYTHON_VAR[func_sign.return_annotation]
+                )
+            )
+        
+        if vars:
+            Variable.objects.bulk_create(vars, batch_size=len(vars))
+
+        if responses:
+            Response.objects.bulk_create(responses, batch_size=len(responses))
+
+
+    @transaction.atomic
     def create_new_jobs(self) -> bool:
         """
         create new jobs.
@@ -56,9 +97,9 @@ class JobsCommand:
             bool: return True if everything is ok
         """
         new_jobs = []
+        jobs = []
 
         for script_filename, detail_func, run_job in self.load_default_jobs.copy():
-            
 
             job_detail:JobDetail = detail_func()
 
@@ -69,16 +110,20 @@ class JobsCommand:
                         script_filename=script_filename,
                         version=job_detail.get("version", "v1"))
                 )
+                jobs.append(run_job)
+
                 self.load_default_jobs.remove((script_filename, detail_func, run_job))
                 self.saved_jobs_name.append(job_detail["name"])
 
         if new_jobs:
-            Job.objects.bulk_create(new_jobs, batch_size=len(new_jobs))
+            created_jobs = Job.objects.bulk_create(new_jobs, batch_size=len(new_jobs))
+
+            self.__add_variables_response(created_jobs, jobs)
 
         return True
 
 
-    # TODO: Save varibales and return_annotation
+    @transaction.atomic
     def update_jobs(self) -> bool:
         """
         update jobs if job`s name exist. this function shoulde use after create_new_jobs function.
@@ -89,6 +134,8 @@ class JobsCommand:
         """
 
         updated_jobs = []
+        selected_jobs = []
+        jobs = []
 
         for script_filename, detail_func, run_job in self.load_default_jobs.copy():
 
@@ -98,7 +145,6 @@ class JobsCommand:
                 currunt_job = Job.objects.get(name=job_detail["name"])
             except Job.DoesNotExist:
                 continue
-
 
             if currunt_job.version != job_detail["version"]:
                 updated_jobs.append(
@@ -110,18 +156,32 @@ class JobsCommand:
                         version=job_detail.get("version", "v1"))
                     )
 
+                # Remove response and variables of this job
+                # we will set it again
+                currunt_job.variables.all().delete()
+                currunt_job.response_type.delete()
+
+                selected_jobs.append(currunt_job)
+
+                jobs.append(run_job)
+                
+
             self.load_default_jobs.remove((script_filename, detail_func, run_job))
 
             self.saved_jobs_name.append(job_detail["name"])
 
 
         if updated_jobs:
-            Job.objects.bulk_update(updated_jobs, fields=["version", "help", "script_filename" ], batch_size=len(updated_jobs))
+            Job.objects.bulk_update(updated_jobs,
+                                    fields=["version", "help", "script_filename" ],
+                                    batch_size=len(updated_jobs))
+
+            self.__add_variables_response(selected_jobs, jobs)
 
         return True
 
 
-    # TODO: Remove varibales and return_annotation
+    @transaction.atomic
     def delete_jobs(self) -> bool:
         """
         delete jobs.
