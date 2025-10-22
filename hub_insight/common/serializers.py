@@ -7,7 +7,7 @@ class PaginationFilterSerializer(serializers.Serializer):
     page_size = serializers.IntegerField(
         required=False, help_text="Number of results to return per page."
     )
-    all = serializers.BooleanField(default=False, required=False)
+    all = serializers.BooleanField(required=False)
 
 
 
