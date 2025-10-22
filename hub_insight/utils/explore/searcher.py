@@ -22,5 +22,6 @@ def searcher(qs: QuerySet, fields: list[str], target: str, operator: str = '__ic
     base = Q()
     for field in fields:
         base |= __create_q_object(field, target, operator)
-    return qs.filter(base)
+    return qs.filter(base).distinct()
+
 
