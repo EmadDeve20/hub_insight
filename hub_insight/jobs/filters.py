@@ -11,7 +11,7 @@ class JobFilterSet(FilterSet):
         fields = [
             "name",
             "help",
-            # "variables__name",
+            "variables__name",
         ]
 
         return searcher(queryset, fields, value)
