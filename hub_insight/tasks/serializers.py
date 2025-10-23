@@ -1,11 +1,9 @@
-from django.utils.translation import gettext_lazy as _
 
 from django_celery_beat.validators import crontab_validator
 
 from rest_framework import serializers
-from rest_framework.exceptions import NotFound
 
-from hub_insight.jobs.models import Job
+from hub_insight.jobs.selectors import get_job_by_id
 from hub_insight.common.mapper import MAP_JOB_TYPE_TO_SERIALIZER as MAP_SERIALIZER
 from hub_insight.common.mapper import MAP_JOB_TYPE_TO_PYTHON_TYPE as MAP_PYTHON
 
@@ -18,21 +16,15 @@ def generate_variables_serializer(job_id:int) -> serializers.Serializer|None:
     Args:
         job_id (int): job id
 
-    Raises:
-        NotFound: raise not found if job is not exist
-
     Returns:
         serializers.Serializer|None: return a Serializer class if job has variables.
         otherwise, retrurn None 
     """
 
-    try:
-        job = Job.objects.get(id=job_id)
-    except Job.DoesNotExist:
-        raise NotFound(_("job does not exist!"))
-    
     fields_dict = {}
 
+    job = get_job_by_id(job_id)
+    
     for var in job.variables.all():
         if var.default:
             fields_dict[var.name] = MAP_SERIALIZER[var.var_type](default=MAP_PYTHON[var.var_type](var.default)) 
