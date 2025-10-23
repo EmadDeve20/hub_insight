@@ -7,6 +7,7 @@ from drf_spectacular.utils import extend_schema
 
 from hub_insight.api.mixins import ApiAuthMixin
 from .serializers import InputCreateTaskSerializer
+from .services import create_task
 
 class CreateListScheduleTaskApi(ApiAuthMixin, APIView):
 
@@ -20,8 +21,11 @@ class CreateListScheduleTaskApi(ApiAuthMixin, APIView):
         serializer = InputCreateTaskSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        print(serializer.validated_data)
 
+        task = create_task(user=request.user,
+                    **serializer.validated_data)
+
+        print(f"{task=}")
 
         return Response()
 
