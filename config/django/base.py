@@ -20,6 +20,7 @@ LOCAL_APPS = [
     'hub_insight.authentication.apps.AuthenticationConfig',
     'hub_insight.jobs.apps.JobsConfig',
     'hub_insight.commands.apps.CommandsConfig',
+    'hub_insight.tasks.apps.TasksConfig',
 ]
 
 THIRD_PARTY_APPS = [
