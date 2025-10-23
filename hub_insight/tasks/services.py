@@ -1,0 +1,58 @@
+import json
+from uuid import uuid4
+
+from django.db import transaction
+
+from .models import Task, PeriodicTask, CrontabSchedule
+from hub_insight.jobs.selectors import get_job_by_id
+
+from hub_insight.users.models import User
+
+@transaction.atomic
+def create_task(user:User, job_id:int, cron_expression:str, variables:dict) -> Task:
+    """
+    create a tast
+
+    Args:
+        user (User): user requester
+        job_id (int): job id
+        cron_expression (str): valid cron expression 
+        variables (dict): variables
+
+    Returns:
+        Task: retuern created task
+    """
+
+    cron_expression = cron_expression.split()
+    
+    job = get_job_by_id(job_id)
+
+    cron = CrontabSchedule.objects.create(
+        minute=cron_expression[0],
+        hour=cron_expression[1],
+        day_of_week=cron_expression[2],
+        day_of_month=cron_expression[3],
+        month_of_year=cron_expression[4]
+    )
+
+    task_name = f"{user.username}_{uuid4()}"
+
+    periodic_task = PeriodicTask.objects.create(
+        name=task_name,
+        task="hub_insight.tasks.tasks.run_job_task",
+        args=json.dumps([task_name]),
+        crontab=cron,
+        enabled=True,
+    )
+
+
+    return Task.objects.create(
+        name=task_name,
+        user=user,
+        job=job,
+        celery_periodic_task=periodic_task,
+        celery_cron_schedule=cron,
+        variables=variables
+    )
+
+
