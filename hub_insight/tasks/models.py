@@ -7,7 +7,7 @@ from django_celery_beat.models import PeriodicTask, CrontabSchedule
 
 
 class Task(BaseModel):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True, editable=False)
     user = models.ForeignKey("users.User", on_delete=models.CASCADE)
     job = models.ForeignKey("jobs.Job", on_delete=models.CASCADE)
     enabled = models.BooleanField(default=True)
