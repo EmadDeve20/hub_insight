@@ -13,7 +13,7 @@ def run_job_task(task_name:str):
     file = task.job.script_filename
     job_version = task.job.version
     job_help = task.job.help
-    response_type = task.job.response_type.response_type
+    response_type = task.job.response_type
 
     try:
 
