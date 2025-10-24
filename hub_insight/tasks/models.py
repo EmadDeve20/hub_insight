@@ -31,6 +31,8 @@ class Task(BaseModel):
 
         return super().delete(*args, **kwarfg)
 
+    class Meta:
+        ordering = ["-created_at"]
 
 
 class LogTask(BaseModel):
