@@ -8,7 +8,10 @@ class Job(BaseModel):
     help = models.CharField(max_length=255)
     script_filename = models.CharField(max_length=255, default="test.py")
     version = models.CharField(max_length=255, default="v1")
-
+    response_type = models.CharField(max_length=255,
+                                choices=TypeChoices.choices,
+                                default=TypeChoices.string
+                                )
 
     def __str__(self):
         return self.name
@@ -39,16 +42,3 @@ class Variable(BaseModel):
         if self.default:
             return f"{self.name}:{self.var_type} = {self.default}"
         return f"{self.name}:{self.var_type}"
-
-
-# TODO: delete this model and use it as a field in job 
-class Response(BaseModel):
-    response_type = models.CharField(max_length=255,
-                                choices=TypeChoices.choices,
-                                )
-
-    job = models.OneToOneField(Job, on_delete=models.CASCADE, related_name='response_type')
-
-    def __str__(self):
-        return f" -> {self.response_type}"
-
