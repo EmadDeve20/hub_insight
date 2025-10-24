@@ -14,7 +14,10 @@ from .serializers import (
     OutputTaskSwaggerSerializer
 )
 
-from .services import create_task
+from .services import (
+    create_task,
+    delete_task_by_id,
+)
 
 from .selectors import (
     get_list_of_task,
@@ -76,6 +79,17 @@ class UpdateDeleteRetriveTaskApi(ApiAuthMixin, APIView):
         output_seirlaizer = OutputTaskSerializer(task)
 
         return Response(output_seirlaizer.data)
+
+
+    @extend_schema(
+        tags=["Task"],
+    )
+    def delete(self, request, id):
+        
+        delete_task_by_id(task_id=id, user=request.user)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 
 
