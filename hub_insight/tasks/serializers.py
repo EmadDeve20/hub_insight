@@ -46,7 +46,8 @@ def generate_variables_serializer(job_id:int) -> serializers.Serializer|None:
 
 class InputCreateTaskSerializer(serializers.Serializer):
     job_id = serializers.IntegerField()
-    cron_expression = serializers.CharField(default="* * * * *", validators=[crontab_validator])
+    cron_expression = serializers.CharField(default="* * * * *",
+                                            validators=[crontab_validator])
     variables = serializers.JSONField()
     enabled = serializers.BooleanField(default=True)
 
@@ -74,6 +75,13 @@ class OutputTaskSerializer(serializers.ModelSerializer):
 
     user = OutputUserSerializer()
     job = OutputJobSerializer()
+    cron_expression = serializers.SerializerMethodField()
+
+    def get_cron_expression(self, instance:Task) ->str :
+
+        cron = instance.celery_periodic_task.crontab
+
+        return f"{cron.minute} {cron.hour} {cron.day_of_month} {cron.month_of_year} {cron.day_of_week}"
 
     class Meta:
         model = Task
@@ -84,9 +92,18 @@ class OutputTaskSerializer(serializers.ModelSerializer):
             "enabled",
             "variables",
             "created_at",
+            "cron_expression"
         ]
 
 
 class OutputTaskSwaggerSerializer(SwaggerListSerializer):
     results = serializers.ListField(child=OutputTaskSerializer())
+
+
+class InputPatchTaskSerializer(serializers.Serializer):
+    cron_expression = serializers.CharField(validators=[crontab_validator],
+                                            required=False)
+
+    enabled = serializers.BooleanField(required=False)
+
 
