@@ -10,6 +10,7 @@ from hub_insight.common.mapper import MAP_JOB_TYPE_TO_PYTHON_TYPE as MAP_PYTHON
 from .models import Task
 from hub_insight.jobs.serializers import OutputJobSerializer
 from hub_insight.users.serializers import OutputUserSerializer
+from hub_insight.common.serializers import SwaggerListSerializer
 
 
 def generate_variables_serializer(job_id:int) -> serializers.Serializer|None:
@@ -83,4 +84,8 @@ class OutputTaskSerializer(serializers.ModelSerializer):
             "variables",
             "created_at",
         ]
+
+
+class OutputTaskSwaggerSerializer(SwaggerListSerializer):
+    results = serializers.ListField(child=OutputTaskSerializer())
 
