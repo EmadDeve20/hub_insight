@@ -34,7 +34,10 @@ class Task(BaseModel):
 
 
 class LogTask(BaseModel):
-    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name="logs")
+    task = models.ForeignKey(Task, on_delete=models.SET_NULL,
+                             related_name="logs",
+                             null=True)
+
     is_ok = models.BooleanField(default=True)
     error_message = models.CharField(max_length=255,
                                      null=True,
