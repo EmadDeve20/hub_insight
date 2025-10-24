@@ -165,6 +165,8 @@ CACHE_TTL = 60 * 15
 
 APP_DOMAIN = env("APP_DOMAIN", default="http://localhost:8000")
 
+MAXIMUM_ENABLED_JOB = env.int("MAXIMUM_ENABLED_JOB", 5)
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 from config.settings.cors import *  # noqa
