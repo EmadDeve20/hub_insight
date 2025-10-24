@@ -1,8 +1,14 @@
 import json
+
 from uuid import uuid4
+
+from config.django.base import MAXIMUM_ENABLED_JOB
 
 from django.db import transaction
 from django_celery_beat.models import CrontabSchedule
+from django.utils.translation import gettext_lazy as txt_lazy
+
+from rest_framework.exceptions import ValidationError
 
 from .models import (
     Task,
@@ -15,7 +21,8 @@ from hub_insight.jobs.selectors import get_job_by_id
 from hub_insight.users.models import User
 
 @transaction.atomic
-def create_task(user:User, job_id:int, cron_expression:str, variables:dict) -> Task:
+def create_task(user:User,
+job_id:int, cron_expression:str, variables:dict, enabled:bool=True) -> Task:
     """
     create a tast
 
@@ -24,6 +31,7 @@ def create_task(user:User, job_id:int, cron_expression:str, variables:dict) -> T
         job_id (int): job id
         cron_expression (str): valid cron expression 
         variables (dict): variables
+        enabled (bool): default is True
 
     Returns:
         Task: retuern created task
@@ -31,6 +39,15 @@ def create_task(user:User, job_id:int, cron_expression:str, variables:dict) -> T
 
     # check permission for user has permission to make more task or not?
     # for example, here we just check user is suepruser or not 
+    # we set a permission and check by it like this:
+    # user.has_perm('tasks.add_more_task')
+
+    if enabled and not user.is_superuser:
+        if Task.objects.filter(user=user, enabled=True).count() >= MAXIMUM_ENABLED_JOB:
+            raise ValidationError(txt_lazy("you cannot have enabled task "
+                                    "more than %(maximum_en)s") 
+                                    % {"maximum_en": str(MAXIMUM_ENABLED_JOB)})
+
 
     cron_expression = cron_expression.split()
     
@@ -51,7 +68,7 @@ def create_task(user:User, job_id:int, cron_expression:str, variables:dict) -> T
         task="hub_insight.tasks.tasks.run_job_task",
         args=json.dumps([task_name]),
         crontab=cron,
-        enabled=True,
+        enabled=enabled
     )
 
 
@@ -60,7 +77,8 @@ def create_task(user:User, job_id:int, cron_expression:str, variables:dict) -> T
         user=user,
         job=job,
         celery_periodic_task=periodic_task,
-        variables=variables
+        variables=variables,
+        enabled=enabled
     )
 
 
