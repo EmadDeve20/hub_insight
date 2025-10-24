@@ -54,3 +54,9 @@ class LogTask(BaseModel):
     response_value = models.TextField()
     job_version = models.CharField(max_length=255, default="v1")
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['task', 'created_at']),
+            models.Index(fields=['is_ok']),
+        ]
+
