@@ -21,6 +21,21 @@ from hub_insight.jobs.selectors import get_job_by_id
 from hub_insight.users.models import User
 from .selectors import get_task_by_id
 
+def __create_or_get_cron_schedule(cron_expression:str) -> CrontabSchedule:
+    
+    cron_expression = cron_expression.split()
+
+    cron , _= CrontabSchedule.objects.get_or_create(
+        minute=cron_expression[0],
+        hour=cron_expression[1],
+        day_of_month=cron_expression[2],
+        month_of_year=cron_expression[3],
+        day_of_week=cron_expression[4],
+    )
+
+    return cron
+
+
 @transaction.atomic
 def create_task(user:User,
 job_id:int, cron_expression:str, variables:dict, enabled:bool=True) -> Task:
@@ -50,17 +65,9 @@ job_id:int, cron_expression:str, variables:dict, enabled:bool=True) -> Task:
                                     % {"maximum_en": str(MAXIMUM_ENABLED_JOB)})
 
 
-    cron_expression = cron_expression.split()
-    
     job = get_job_by_id(job_id)
 
-    cron , _= CrontabSchedule.objects.get_or_create(
-        minute=cron_expression[0],
-        hour=cron_expression[1],
-        day_of_week=cron_expression[2],
-        day_of_month=cron_expression[3],
-        month_of_year=cron_expression[4]
-    )
+    cron = __create_or_get_cron_schedule(cron_expression=cron_expression)
 
     task_name = f"{user.username}_{uuid4()}_{job.id}"
 
@@ -129,5 +136,26 @@ def delete_task_by_id(task_id:int, user:User|None=None):
 
     task.delete()
 
+
+@transaction.atomic
+def partial_update_task_by_id(task_id:int, enabled:bool|None=None,
+cron_expression:str|None=None, user:User|None=None) -> Task:
+
+    task = get_task_by_id(task_id=task_id, user=user)
+
+    if cron_expression:
+        cron = __create_or_get_cron_schedule(cron_expression=cron_expression)
+
+        periodic_task = task.celery_periodic_task
+
+        periodic_task.crontab = cron
+        periodic_task.save()
+
+    if enabled is not None:
+        task.enabled = enabled
+
+    task.save()
+
+    return task
 
 
