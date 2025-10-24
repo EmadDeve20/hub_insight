@@ -2,11 +2,11 @@ import json
 from uuid import uuid4
 
 from django.db import transaction
+from django_celery_beat.models import CrontabSchedule
 
 from .models import (
     Task,
     PeriodicTask,
-    CrontabSchedule,
     LogTask,
 )
 
@@ -28,6 +28,9 @@ def create_task(user:User, job_id:int, cron_expression:str, variables:dict) -> T
     Returns:
         Task: retuern created task
     """
+
+    # check permission for user has permission to make more task or not?
+    # for example, here we just check user is suepruser or not 
 
     cron_expression = cron_expression.split()
     
@@ -57,7 +60,6 @@ def create_task(user:User, job_id:int, cron_expression:str, variables:dict) -> T
         user=user,
         job=job,
         celery_periodic_task=periodic_task,
-        celery_cron_schedule=cron,
         variables=variables
     )
 
