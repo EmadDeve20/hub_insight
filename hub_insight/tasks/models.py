@@ -2,7 +2,7 @@ from django.db import models
 
 from hub_insight.common.models import BaseModel, TypeChoices
 
-from django_celery_beat.models import PeriodicTask, CrontabSchedule
+from django_celery_beat.models import PeriodicTask
 
 
 
@@ -14,9 +14,7 @@ class Task(BaseModel):
     celery_periodic_task = models.ForeignKey(PeriodicTask,
                                              on_delete=models.CASCADE,
                                              related_name='custom_task_periodic',)
-    celery_cron_schedule = models.ForeignKey(CrontabSchedule,
-                                             on_delete=models.CASCADE,
-                                             related_name='custom_task_crontab')
+
     variables = models.JSONField()
 
 
