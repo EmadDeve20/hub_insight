@@ -11,12 +11,14 @@ from hub_insight.api.pagination import get_paginated_response
 from .serializers import (
     InputCreateTaskSerializer,
     OutputTaskSerializer,
-    OutputTaskSwaggerSerializer
+    OutputTaskSwaggerSerializer,
+    InputPatchTaskSerializer
 )
 
 from .services import (
     create_task,
     delete_task_by_id,
+    partial_update_task_by_id
 )
 
 from .selectors import (
@@ -79,6 +81,25 @@ class UpdateDeleteRetriveTaskApi(ApiAuthMixin, APIView):
         output_seirlaizer = OutputTaskSerializer(task)
 
         return Response(output_seirlaizer.data)
+
+
+    @extend_schema(
+        tags=["Task"],
+        request=InputPatchTaskSerializer,
+        responses=OutputTaskSerializer
+    )
+    def patch(self, request, id):
+        
+        serializer = InputPatchTaskSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        updated_task = partial_update_task_by_id(task_id=id,
+                                                 user=request.user,
+                                                 **serializer.validated_data)
+        
+        output_serializer = OutputTaskSerializer(updated_task)
+
+        return Response(output_serializer.data)
 
 
     @extend_schema(
