@@ -15,7 +15,6 @@ from .services import create_task
 
 class CreateListScheduleTaskApi(ApiAuthMixin, APIView):
 
-    # TODO: add service  to create task 
     @extend_schema(
         tags=["Task"],
         request=InputCreateTaskSerializer,
