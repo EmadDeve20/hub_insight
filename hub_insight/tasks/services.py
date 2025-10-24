@@ -19,6 +19,7 @@ from .models import (
 from hub_insight.jobs.selectors import get_job_by_id
 
 from hub_insight.users.models import User
+from .selectors import get_task_by_id
 
 @transaction.atomic
 def create_task(user:User,
@@ -112,5 +113,21 @@ is_ok:bool=True, error_message:str|None=None) -> LogTask:
         is_ok=is_ok,
         error_message=error_message,
     )
+
+
+@transaction.atomic
+def delete_task_by_id(task_id:int, user:User|None=None):
+    """
+    delete task by id
+
+    Args:
+        task_id (int): id of task
+        user (User | None, optional): user to filter task by user creator. Defaults to None.
+    """
+
+    task = get_task_by_id(task_id=task_id, user=user)
+
+    task.delete()
+
 
 
