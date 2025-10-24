@@ -54,3 +54,23 @@ user:User|None = None) -> QuerySet[Task]:
 
 
 
+def get_task_by_id(task_id:int, user:User|None = None) -> Task:
+    """
+    get task by id
+
+    Args:
+        task_id (int): id of task
+        user (User | None, optional): filter by user. Defaults to None.
+
+    Raises:
+        NotFound: raise not found of object model does not exist
+
+    Returns:
+        Task: return selected task
+    """
+
+    try:
+        return get_list_of_task(user=user).get(id=task_id)
+    except Task.DoesNotExist:
+        raise NotFound(_("task does not exist!"))
+
