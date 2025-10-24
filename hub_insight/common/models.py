@@ -26,3 +26,10 @@ class RandomModel(BaseModel):
                 check=Q(start_date__lt=F("end_date"))
             )
         ]
+
+class TypeChoices(models.TextChoices):
+
+    interger = ('int', 'Integer')
+    string = ('str', 'String')
+    boolean = ('bool', 'Boolean')
+    float = ('float', 'Float')
