@@ -15,7 +15,12 @@ from .serializers import (
 )
 
 from .services import create_task
-from .selectors import get_list_of_task
+
+from .selectors import (
+    get_list_of_task,
+    get_task_by_id,
+)
+
 from hub_insight.common.serializers import PaginationFilterSerializer
 
 
@@ -55,5 +60,23 @@ class CreateListScheduleTaskApi(ApiAuthMixin, APIView):
             request=request,
             view=self
         )
+
+
+
+class UpdateDeleteRetriveTaskApi(ApiAuthMixin, APIView):
+
+    @extend_schema(
+        tags=["Task"],
+        responses=OutputTaskSerializer
+    )
+    def get(self, request, id):
+        
+        task = get_task_by_id(task_id=id, user=request.user)
+
+        output_seirlaizer = OutputTaskSerializer(task)
+
+        return Response(output_seirlaizer.data)
+
+
 
 
