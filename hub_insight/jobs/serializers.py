@@ -1,6 +1,6 @@
 from rest_framework  import serializers
 
-from .models import Job, Variable, Response, TypeChoices
+from .models import Job, Variable,  TypeChoices
 
 from hub_insight.common.serializers import SwaggerListSerializer
 
@@ -16,20 +16,10 @@ class OutputJobVariablesSerializer(serializers.ModelSerializer):
         ]
 
 
-class  OutputJobResponseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Response
-        fields = [
-            "response_type",
-        ]
-
 
 class OutputJobSerializer(serializers.ModelSerializer):
 
     variables = OutputJobVariablesSerializer(many=True, read_only=True)
-    response_type = serializers.ChoiceField(choices=TypeChoices.choices,
-                                            source='response_type.response_type',
-                                            read_only=True)
 
     class Meta:
         model = Job
