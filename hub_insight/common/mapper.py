@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from hub_insight.jobs.models import TypeChoices
+from .models import TypeChoices
 
 
 MAP_JOB_TYPE_TO_PYTHON_TYPE = {
