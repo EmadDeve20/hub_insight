@@ -7,6 +7,9 @@ from hub_insight.jobs.selectors import get_job_by_id
 from hub_insight.common.mapper import MAP_JOB_TYPE_TO_SERIALIZER as MAP_SERIALIZER
 from hub_insight.common.mapper import MAP_JOB_TYPE_TO_PYTHON_TYPE as MAP_PYTHON
 
+from .models import Task
+from hub_insight.jobs.serializers import OutputJobSerializer
+from hub_insight.users.serializers import OutputUserSerializer
 
 
 def generate_variables_serializer(job_id:int) -> serializers.Serializer|None:
@@ -63,4 +66,21 @@ class InputCreateTaskSerializer(serializers.Serializer):
         
 
         return attrs
+
+
+class OutputTaskSerializer(serializers.ModelSerializer):
+
+    user = OutputUserSerializer()
+    job = OutputJobSerializer()
+
+    class Meta:
+        model = Task
+        fields = [
+            "id",
+            "user",
+            "job",
+            "enabled",
+            "variables",
+            "created_at",
+        ]
 
