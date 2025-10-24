@@ -33,7 +33,7 @@ def create_task(user:User, job_id:int, cron_expression:str, variables:dict) -> T
     
     job = get_job_by_id(job_id)
 
-    cron = CrontabSchedule.objects.create(
+    cron , _= CrontabSchedule.objects.get_or_create(
         minute=cron_expression[0],
         hour=cron_expression[1],
         day_of_week=cron_expression[2],
@@ -41,7 +41,7 @@ def create_task(user:User, job_id:int, cron_expression:str, variables:dict) -> T
         month_of_year=cron_expression[4]
     )
 
-    task_name = f"{user.username}_{uuid4()}"
+    task_name = f"{user.username}_{uuid4()}_{job.id}"
 
     periodic_task = PeriodicTask.objects.create(
         name=task_name,
