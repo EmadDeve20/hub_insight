@@ -48,6 +48,7 @@ class InputCreateTaskSerializer(serializers.Serializer):
     job_id = serializers.IntegerField()
     cron_expression = serializers.CharField(default="* * * * *", validators=[crontab_validator])
     variables = serializers.JSONField()
+    enabled = serializers.BooleanField(default=True)
 
 
     def validate(self, attrs):
