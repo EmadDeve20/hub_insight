@@ -3,7 +3,13 @@ from uuid import uuid4
 
 from django.db import transaction
 
-from .models import Task, PeriodicTask, CrontabSchedule
+from .models import (
+    Task,
+    PeriodicTask,
+    CrontabSchedule,
+    LogTask,
+)
+
 from hub_insight.jobs.selectors import get_job_by_id
 
 from hub_insight.users.models import User
@@ -53,6 +59,38 @@ def create_task(user:User, job_id:int, cron_expression:str, variables:dict) -> T
         celery_periodic_task=periodic_task,
         celery_cron_schedule=cron,
         variables=variables
+    )
+
+
+
+@transaction.atomic
+def create_task_log(task:Task, response_value:str,
+response_type:str, variables:dict, job_help:str, job_version:str,
+is_ok:bool=True, error_message:str|None=None) -> LogTask:
+    """
+    create log for runned task
+
+    Args:
+        task (Task): task object
+        response_value (str): response value
+        response_type (str): type of response
+        variables (dict): runned task with variables
+        job_help (str): run time help of default jobs
+        job_version(str): version of job
+
+    Returns:
+        LogTask: return created LogTask
+    """
+
+    return LogTask.objects.create(
+        task=task,
+        response_value=response_value,
+        response_type=response_type,
+        variables=variables,
+        job_help=job_help,
+        job_version=job_version,
+        is_ok=is_ok,
+        error_message=error_message,
     )
 
 
