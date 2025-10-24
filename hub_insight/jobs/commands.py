@@ -7,7 +7,7 @@ from pathlib import Path
 from django.db import transaction
 
 from config.django.base import BASE_DIR
-from .models import Job, Variable, Response, MAP_PYTHON_VAR
+from .models import Job, Variable, MAP_PYTHON_VAR
 
 from hub_insight.utils.typing import JobDetail
 
@@ -49,7 +49,7 @@ class JobsCommand:
 
     saved_jobs_name = []
 
-    def __add_variables_response(self, jobs:list[Job], func_jobs):
+    def __add_variables_job(self, jobs:list[Job], func_jobs):
         """
         add variables and response for each Job object model
 
@@ -59,7 +59,6 @@ class JobsCommand:
         """
 
         vars = []
-        responses = []
 
         for job, func_job in zip(jobs, func_jobs):
             func_sign = inspect.signature(func_job)
@@ -73,19 +72,8 @@ class JobsCommand:
                     )
                 )
 
-            responses.append(
-                Response(
-                    job=job,
-                    response_type=MAP_PYTHON_VAR[func_sign.return_annotation]
-                )
-            )
-        
         if vars:
             Variable.objects.bulk_create(vars, batch_size=len(vars))
-
-        if responses:
-            Response.objects.bulk_create(responses, batch_size=len(responses))
-
 
     @transaction.atomic
     def create_new_jobs(self) -> bool:
@@ -102,13 +90,17 @@ class JobsCommand:
         for script_filename, detail_func, run_job in self.load_default_jobs.copy():
 
             job_detail:JobDetail = detail_func()
+            func_sign = inspect.signature(run_job)
+
 
             if not Job.objects.filter(name=job_detail["name"]).exists():
                 new_jobs.append(
                     Job(name=job_detail["name"],
                         help=job_detail["help"],
                         script_filename=script_filename,
-                        version=job_detail.get("version", "v1"))
+                        version=job_detail.get("version", "v1"),
+                        response_type=MAP_PYTHON_VAR[func_sign.return_annotation],
+                        )
                 )
                 jobs.append(run_job)
 
@@ -118,7 +110,7 @@ class JobsCommand:
         if new_jobs:
             created_jobs = Job.objects.bulk_create(new_jobs, batch_size=len(new_jobs))
 
-            self.__add_variables_response(created_jobs, jobs)
+            self.__add_variables_job(created_jobs, jobs)
 
         return True
 
@@ -146,6 +138,8 @@ class JobsCommand:
             except Job.DoesNotExist:
                 continue
 
+            func_sign = inspect.signature(run_job)
+
             if currunt_job.version != job_detail["version"]:
                 updated_jobs.append(
                     Job(
@@ -153,13 +147,14 @@ class JobsCommand:
                         name=job_detail["name"],
                         help=job_detail["help"],
                         script_filename=script_filename,
-                        version=job_detail.get("version", "v1"))
+                        version=job_detail.get("version", "v1"),
+                        response_type=MAP_PYTHON_VAR[func_sign.return_annotation],
+                        )
                     )
 
-                # Remove response and variables of this job
+                # Remove variables of this job
                 # we will set it again
                 currunt_job.variables.all().delete()
-                currunt_job.response_type.delete()
 
                 selected_jobs.append(currunt_job)
 
@@ -176,7 +171,7 @@ class JobsCommand:
                                     fields=["version", "help", "script_filename" ],
                                     batch_size=len(updated_jobs))
 
-            self.__add_variables_response(selected_jobs, jobs)
+            self.__add_variables_job(selected_jobs, jobs)
 
         return True
 
