@@ -1,6 +1,6 @@
 from django.db import models
 
-from hub_insight.common.models import BaseModel
+from hub_insight.common.models import BaseModel, TypeChoices
 
 
 class Job(BaseModel):
@@ -14,13 +14,6 @@ class Job(BaseModel):
         return self.name
 
 
-
-class TypeChoices(models.TextChoices):
-
-        interger = ('int', 'Integer')
-        string = ('str', 'String')
-        boolean = ('bool', 'Boolean')
-        float = ('float', 'Float')
 
         
 
@@ -48,7 +41,7 @@ class Variable(BaseModel):
         return f"{self.name}:{self.var_type}"
 
 
-
+# TODO: delete this model and use it as a field in job 
 class Response(BaseModel):
     response_type = models.CharField(max_length=255,
                                 choices=TypeChoices.choices,
