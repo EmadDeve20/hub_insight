@@ -36,6 +36,8 @@ class ListLogTaskApi(ApiAuthMixin, APIView):
                                          " or reverse: `-job__name`. you can use more seprated by `,`")
         is_ok = serializers.ChoiceField(required=False, choices=boolean_choices)
 
+        from_datetime = serializers.DateTimeField(required=False)
+        to_datetime = serializers.DateTimeField(required=False)
 
     @extend_schema(
         tags=["Logs"],
