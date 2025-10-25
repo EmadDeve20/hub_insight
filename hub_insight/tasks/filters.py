@@ -49,7 +49,9 @@ class JobFilterSet(FilterSet):
         
         values = value.split(",")
 
-        return queryset.order_by(*values)
-
+        try:
+            return queryset.order_by(*values)
+        except Exception:
+            return queryset
 
 

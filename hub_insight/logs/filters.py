@@ -52,7 +52,10 @@ class TaskLogFilterSet(FilterSet):
         
         values = value.split(",")
 
-        return queryset.order_by(*values)
+        try:
+            return queryset.order_by(*values)
+        except Exception:
+            return queryset
 
 
     def filter_is_ok(self, queryset, name, value):
