@@ -58,6 +58,7 @@ class LogTask(BaseModel):
     job_version = models.CharField(max_length=255, default="v1")
 
     class Meta:
+        ordering = ["-created_at"]
         indexes = [
             models.Index(fields=['task', 'created_at']),
             models.Index(fields=['is_ok']),
