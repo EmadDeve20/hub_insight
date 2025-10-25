@@ -8,6 +8,7 @@ class JobFilterSet(FilterSet):
     is_enabled = CharFilter(method="filter_is_enabled")
     job_ids = CharFilter(method="filter_job_ids")
     user_ids = CharFilter(method="filter_user_ids")
+    order_by = CharFilter(method="filter_order_by")
 
     def filter_search(self, queryset, name, value):
         
@@ -42,4 +43,14 @@ class JobFilterSet(FilterSet):
         values = list(map(int, value.split(",")))
 
         return queryset.filter(user__id__in=values)
+
+
+    def filter_order_by(self, queryset, name, value):
+        
+        values = value.split(",")
+        print(value)
+
+        return queryset.order_by(*values)
+
+
 
