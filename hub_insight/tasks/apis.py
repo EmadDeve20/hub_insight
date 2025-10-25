@@ -42,7 +42,9 @@ class CreateListScheduleTaskApi(ApiAuthMixin, APIView):
         is_enabled = serializers.ChoiceField(required=False, choices=enabled_choices)
         job_ids = serializers.CharField(required=False, help_text="id of jobs. seprated by ,")
         user_ids = serializers.CharField(required=False, help_text="id of users. seprated by ,")
-
+        order_by = serializers.CharField(required=False, help_text="order by response fields."
+                                         "for example order by jobs name: `job__name`"
+                                         " or reverse: `-job__name`. you can use more seprated by `,`")
     @extend_schema(
         tags=["Task"],
         request=InputCreateTaskSerializer,
