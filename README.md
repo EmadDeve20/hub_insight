@@ -75,6 +75,22 @@ but I return a tuple, a boolean type and str. return type to just define normal 
 here is another example:
 
 ```python
+import requests
+
+from hub_insight.utils.typing import JobDetail
+
+
+
+def job_detail() -> JobDetail:
+    detail:JobDetail = {
+        "help": "check status code of url with get method",
+        "name": "Check WebSite Status code",
+        "version": "v1",
+    }
+
+    return detail
+
+
 def run_job(url:str) -> int:
     """
     check status code of a website
