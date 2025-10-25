@@ -21,9 +21,9 @@ filter:dict={}) -> QuerySet[LogTask]:
         QuerySet[LogTask]: return queryset of LogTask
     """
 
-    if not user:
+    if not user or (user and user.is_superuser):
         qs = LogTask.objects.all()
-    else:
+    elif user and not user.is_superuser :
         qs = LogTask.objects.filter(task__user=user)
     
 
