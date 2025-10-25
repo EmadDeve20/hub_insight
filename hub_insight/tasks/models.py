@@ -54,7 +54,7 @@ class LogTask(BaseModel):
                                 choices=TypeChoices.choices,
                                 )
 
-    response_value = models.TextField()
+    response_value = models.TextField(null=True, default=None)
     job_version = models.CharField(max_length=255, default="v1")
 
     class Meta:
