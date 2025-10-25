@@ -6,8 +6,8 @@ from rest_framework.exceptions import NotFound
 from hub_insight.tasks.models import LogTask
 from hub_insight.users.models import User 
 
+from .filters import TaskLogFilterSet
 
-# TODO: add filter here
 def get_task_log_list(user:User|None=None,
 filter:dict={}) -> QuerySet[LogTask]:
     """
@@ -23,11 +23,15 @@ filter:dict={}) -> QuerySet[LogTask]:
 
     if not user or (user and user.is_superuser):
         qs = LogTask.objects.all()
+
     elif user and not user.is_superuser :
+        if filter and "user_ids" in filter:
+            filter.pop("user_ids")
+
         qs = LogTask.objects.filter(task__user=user)
     
 
-    return qs
+    return TaskLogFilterSet(filter, qs).qs
 
 
 def get_task_log_by_id(task_log_id:int, user:User|None=None) -> LogTask:
