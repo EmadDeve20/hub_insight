@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import serializers
 
 
 from drf_spectacular.utils import extend_schema
@@ -31,6 +32,17 @@ from hub_insight.common.serializers import PaginationFilterSerializer
 
 class CreateListScheduleTaskApi(ApiAuthMixin, APIView):
 
+    class InputArgSerializer(serializers.Serializer):
+        search = serializers.CharField(required=False,
+                                       help_text="search on fields: job__name,"
+                                       " job__variables__name, variables")
+        
+        enabled_choices = ("true", "false")
+
+        is_enabled = serializers.ChoiceField(required=False, choices=enabled_choices)
+        job_ids = serializers.CharField(required=False, help_text="id of jobs. seprated by ,")
+        user_ids = serializers.CharField(required=False, help_text="id of users. seprated by ,")
+
     @extend_schema(
         tags=["Task"],
         request=InputCreateTaskSerializer,
@@ -53,11 +65,15 @@ class CreateListScheduleTaskApi(ApiAuthMixin, APIView):
     @extend_schema(
         tags=["Task"],
         responses=OutputTaskSwaggerSerializer,
-        parameters=[PaginationFilterSerializer]
+        parameters=[PaginationFilterSerializer, InputArgSerializer]
     )
     def get(self, request):
         
-        queryset = get_list_of_task(user=request.user)
+        filter_serializer = self.InputArgSerializer(data=request.query_params)
+        filter_serializer.is_valid(raise_exception=True)
+
+        queryset = get_list_of_task(user=request.user,
+                                    filter=filter_serializer.validated_data)
 
         return get_paginated_response(
             serializer_class=OutputTaskSerializer,
