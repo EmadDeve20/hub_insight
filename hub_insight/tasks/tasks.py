@@ -21,15 +21,17 @@ def run_job_task(task_name:str):
 
         job_function = getattr(module, "run_job")
 
-        response_value = job_function(**task.variables) 
+        is_ok, response_value = job_function(**task.variables) 
 
         create_task_log(
             task=task,
             job_help=job_help,
             job_version=job_version,
             response_type=response_type,
-            response_value=response_value,
-            variables=task.variables
+            response_value=None if not is_ok else response_value,
+            variables=task.variables,
+            error_message=response_value if not is_ok else None,
+            is_ok=is_ok
         )
 
     except Exception:
