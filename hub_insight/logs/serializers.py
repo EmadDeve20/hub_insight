@@ -2,17 +2,18 @@ from rest_framework import serializers
 
 from hub_insight.common.serializers import SwaggerListSerializer
 from hub_insight.tasks.models import LogTask
+from hub_insight.tasks.serializers import OutputTaskSerializer
 
 class OutputLogTaskListSerializer(serializers.ModelSerializer):
 
-    job = serializers.CharField(source="task.job.name", default=None)
+    task = OutputTaskSerializer()
 
     class Meta:
         model = LogTask
         fields = [
             "id",
             "created_at",
-            "job",
+            "task",
             "is_ok",
             "variables",
             "job_version",
