@@ -10,14 +10,36 @@ services:
       - POSTGRES_DB=hub_insight
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data/
+
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - redis-data:/data
+
+
+  rabbitmq:
+    image: "rabbitmq:alpine"
+    container_name: rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    ports:
+      - 5672:5672
 
   celery:
     build:
       context: .
       dockerfile: docker/production.Dockerfile
-    # command: celery -A hub_insight.tasks worker -l info --without-gossip --without-mingle --without-heartbeat
+    command: celery -A config worker --loglevel=INFO
     container_name: worker
-    command: ./docker/celery_entrypoint.sh
     environment:
       - DATABASE_URL=psql://user:password@db:5432/hub_insight
       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
@@ -32,9 +54,8 @@ services:
     build:
       context: .
       dockerfile: docker/production.Dockerfile
-    # command: celery -A hub_insight.tasks beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    command: celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     container_name: beats
-    command: ./docker/beats_entrypoint.sh
     environment:
       - DATABASE_URL=psql://user:password@db:5432/hub_insight
       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
@@ -44,3 +65,28 @@ services:
       - db
       - rabbitmq
     restart: on-failure
+  
+
+  django:
+    build:
+      context: .
+      dockerfile: docker/production.Dockerfile
+    command: ./docker/web_entrypoint.sh
+    container_name: hub_insight
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - rabbitmq
+      - celery
+      - beats
+    restart: on-failure
+    ports:
+      - 8000:8000
+
+volumes:
+  postgres-data:
+  redis-data:
+
