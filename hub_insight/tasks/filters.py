@@ -48,7 +48,6 @@ class JobFilterSet(FilterSet):
     def filter_order_by(self, queryset, name, value):
         
         values = value.split(",")
-        print(value)
 
         return queryset.order_by(*values)
 
