@@ -174,6 +174,11 @@ for example this is output of jobs list api:
 
 wee need input args to define the task. And this is important to define their type because we have a validation checker for input values in the create task API.
 
+for this version, we just support this type of input args:
+```python
+str int float bool
+```
+
 ## project setup
 
 1- compelete cookiecutter workflow (recommendation: leave project_slug empty) and go inside the project
