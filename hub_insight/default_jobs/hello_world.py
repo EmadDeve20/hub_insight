@@ -18,6 +18,6 @@ def run_job() -> str:
     Returns:
         str: return 'hello world'
     """
-    return  'hello world'
+    return  True, 'hello world'
 
 

@@ -22,6 +22,6 @@ def run_job(number_one:int=1, number_two:int=2) -> int:
     Returns:
         int: return response [number_one + number_two]
     """
-    return  number_one + number_two
+    return  True, number_one + number_two
 
 
