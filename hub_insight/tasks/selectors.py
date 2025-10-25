@@ -6,6 +6,7 @@ from rest_framework.exceptions import NotFound
 from hub_insight.users.models import User
 
 from .models import Task
+from .filters import JobFilterSet
 
 
 def get_task_by_name(name:str) -> Task:
@@ -29,7 +30,6 @@ def get_task_by_name(name:str) -> Task:
 
 
 
-# TODO: add filter dict
 def get_list_of_task(filter:dict={},
 user:User|None = None) -> QuerySet[Task]:
     """
@@ -44,13 +44,20 @@ user:User|None = None) -> QuerySet[Task]:
         QuerySet[Task]: return selected queryset of task
     """
 
+
     if not user or user.is_superuser:
+
         qs = Task.objects.all()
 
+    # here because we handle just with superuser
+    # so I gana remove user ids filter if it is in filter and user not 
+    # superuser
     elif user or not user.is_superuser:
         qs = Task.objects.filter(user=user)
+        if filter and "user_ids" in filter:
+            filter.pop("user_ids")
 
-    return qs
+    return JobFilterSet(filter, qs).qs
 
 
 
