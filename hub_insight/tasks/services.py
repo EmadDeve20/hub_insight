@@ -2,13 +2,10 @@ import json
 
 from uuid import uuid4
 
-from config.django.base import MAXIMUM_ENABLED_JOB
 
 from django.db import transaction
 from django_celery_beat.models import CrontabSchedule
-from django.utils.translation import gettext_lazy as txt_lazy
 
-from rest_framework.exceptions import ValidationError
 
 from .models import (
     Task,
@@ -20,7 +17,9 @@ from hub_insight.jobs.selectors import get_job_by_id
 
 from hub_insight.users.models import User
 from .selectors import get_task_by_id
+from .permissions import check_permission_create_enabled_task
 
+@transaction.atomic
 def __create_or_get_cron_schedule(cron_expression:str) -> CrontabSchedule:
     
     cron_expression = cron_expression.split()
@@ -53,16 +52,10 @@ job_id:int, cron_expression:str, variables:dict, enabled:bool=True) -> Task:
         Task: retuern created task
     """
 
-    # check permission for user has permission to make more task or not?
-    # for example, here we just check user is suepruser or not 
-    # we set a permission and check by it like this:
-    # user.has_perm('tasks.add_more_task')
+    
 
     if enabled and not user.is_superuser:
-        if Task.objects.filter(user=user, enabled=True).count() >= MAXIMUM_ENABLED_JOB:
-            raise ValidationError(txt_lazy("you cannot have enabled task "
-                                    "more than %(maximum_en)s") 
-                                    % {"maximum_en": str(MAXIMUM_ENABLED_JOB)})
+        check_permission_create_enabled_task
 
 
     job = get_job_by_id(job_id)
@@ -152,6 +145,8 @@ cron_expression:str|None=None, user:User|None=None) -> Task:
         periodic_task.save()
 
     if enabled is not None:
+        if enabled is True:
+            check_permission_create_enabled_task(user)
         task.enabled = enabled
 
     task.save()
