@@ -33,6 +33,9 @@ services:
       retries: 3
     ports:
       - 5672:5672
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    
 
   celery:
     build:
@@ -65,7 +68,6 @@ services:
       - db
       - rabbitmq
     restart: on-failure
-  
 
   django:
     build:
@@ -89,4 +91,6 @@ services:
 volumes:
   postgres-data:
   redis-data:
+  rabbitmq-data:
+
 
